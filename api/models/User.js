@@ -5,6 +5,8 @@
  * @docs        :: http://sailsjs.org/documentation/concepts/models-and-orm/models
  */
 
+var bcrypt = require('bcrypt');
+
 module.exports = {
 
   attributes: {
@@ -24,9 +26,6 @@ module.exports = {
       type: 'email',
       unique: true,
       required: true,
-    },
-    age: {
-      type: 'integer',
     },
     verificationCode: {
       type: 'string',
@@ -50,11 +49,23 @@ module.exports = {
       request.verificationCode = buffer.toString('base64');
     });
 
-    require('bcrypt').hash(request.password, 10, function passwordEncrypted(err, encryptedPassword) {
+    bcrypt.hash(request.password, 10, function passwordEncrypted(err, encryptedPassword) {
       if (err) return response(err);
       request.password = encryptedPassword;
       response();
     });
+  },
+
+  comparePassword : function (password, user, cb) {
+    bcrypt.compare(password, user.password, function (err, match) {
+
+      if(err) cb(err);
+      if(match) {
+        cb(null, true);
+      } else {
+        cb(err);
+      }
+    })
   },
 };
 
